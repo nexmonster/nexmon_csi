@@ -10,10 +10,20 @@ Interleaved CSI samples in PCAP files.
 Suitable for bcm43455c0 and bcm4339 chips.
 
 Requires Numpy.
+
+Usage
+-----
+
+import decoders.interleaved as decoder
+
+samples = decoder.read_pcap('path_to_pcap_file')
+
+Bandwidth is inferred from the pcap file, but
+can also be explicitly set:
+samples = decoder.read_pcap('path_to_pcap_file', bandwidth=40)
 '''
 
 __all__ = [
-    'read',
     'read_pcap'
 ]
 
@@ -67,35 +77,20 @@ pilots = {
 }
 
 class SampleSet(object):
+    '''
+        A helper class to contain data read
+        from pcap files.
+    '''
     def __init__(self, samples, bandwidth):
         self.mac, self.seq, self.css, self.csi = samples
 
         self.nsamples = self.csi.shape[0]
         self.bandwidth = bandwidth
 
-    def get_csi(self, index=-1, rm_nulls=False, rm_pilots=False):
+    def get_mac(self, index):
+        return self.mac[index*6: (index+1)*6]
 
-        if index == -1:
-            csi = self.csi.copy()
-            if rm_nulls:
-                csi[:, nulls[self.bandwidth]] = 0
-            if rm_pilots:
-                csi[:, pilots[self.bandwidth]] = 0
-        else:
-            csi = self.csi[index].copy()
-            if rm_nulls:
-                csi[nulls[self.bandwidth]] = 0
-            if rm_pilots:
-                csi[pilots[self.bandwidth]] = 0
-
-        return csi
-   
-    def print(self, index):
-        # Mac ID
-        macid = self.mac[index*6: (index+1)*6].hex()
-        macid = ':'.join([macid[i:i+2] for i in range(0, len(macid), 2)])
-
-        # Sequence control
+    def get_seq(self, index):
         sc = int.from_bytes(#uint16: SC
             self.seq[index*2: (index+1)*2],
             byteorder = 'little',
@@ -104,8 +99,30 @@ class SampleSet(object):
         fn = sc % 16 # Fragment Number
         sc = int((sc - fn)/16) # Sequence Number
 
+        return (sc, fn)
+    
+    def get_css(self, index):
+        return self.css[index*2: (index+1)*2]
+
+    def get_csi(self, index, rm_nulls=False, rm_pilots=False):
+        csi = self.csi[index].copy()
+        if rm_nulls:
+            csi[nulls[self.bandwidth]] = 0
+        if rm_pilots:
+            csi[pilots[self.bandwidth]] = 0
+
+        return csi
+   
+    def print(self, index):
+        # Mac ID
+        macid = self.get_mac(index).hex()
+        macid = ':'.join([macid[i:i+2] for i in range(0, len(macid), 2)])
+
+        # Sequence control
+        sc, fn = self.get_seq(index)
+
         # Core and Spatial Stream
-        css = self.css[index*2: (index+1)*2].hex()
+        css = self.get_css(index).hex()
 
         print(
             f'''

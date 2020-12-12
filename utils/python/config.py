@@ -21,7 +21,7 @@ pcap_fileroot = 'pcapfiles'
 
 print_samples = True  # Set this to False to stop printing to terminal
 plot_samples = True   # Set this to False to stop plotting
-plot_animation_delay_s = 0.005
+plot_animation_delay_s = 0.005 # Delay between csi plots.
 
 remove_null_subcarriers = True
 remove_pilot_subcarriers = False
