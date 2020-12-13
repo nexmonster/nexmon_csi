@@ -1,4 +1,5 @@
 #!/bin/sh
+# @author: Aravind Voggu @zeroby0
 
 function setStatus () {
   if { [ "$TERM" = "screen" ] && [ -n "$TMUX" ]; } then
@@ -41,7 +42,7 @@ make
 
 setStatus "Downloading Nexmon_CSI"
 cd $NEXDIR/patches/bcm43455c0/7_45_189/
-git clone https://github.com/zeroby0/nexmon_csi.git
+git clone https://github.com/nexmonster/nexmon_csi.git
 
 setStatus "Building and installing Nexmon_CSI"
 cd nexmon_csi
@@ -65,5 +66,7 @@ mv $(modinfo brcmfmac -n) ./brcmfmac.ko.orig
 cp ./brcmfmac.ko $(modinfo brcmfmac -n)
 depmod -a
 
-touch /home/pi/COMPLETED
+setStatus "Downloading additional scripts"
+cd /home/pi
+wget https://raw.githubusercontent.com/nexmonster/nexmon_csi/pi-4.19.97/reinstall.sh -O reinstall.sh
 setStatus "Completed"
