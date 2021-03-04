@@ -91,7 +91,7 @@ class SampleSet(object):
         return self.mac[index*6: (index+1)*6]
 
     def get_seq(self, index):
-        sc = int.from_bytes(#uint16: SC
+        sc = int.from_bytes( #uint16: SC
             self.seq[index*2: (index+1)*2],
             byteorder = 'little',
             signed = False
